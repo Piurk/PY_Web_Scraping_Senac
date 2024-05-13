@@ -6,7 +6,7 @@ Este documento descreve o projeto de automação desenvolvido para gerar tabelas
 
 O principal objetivo deste projeto é criar um sistema automatizado que possa:
 
-- Gerar uma tabela Excel con informações sobre os cursos.
+- Gerar uma tabela Excel com informações sobre os cursos.
 - Reduzir o número de passos para chegar na lista de aprovação.
 - Ser possível atualização em tempo real graças ao WebScraping.
 
