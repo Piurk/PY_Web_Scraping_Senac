@@ -53,7 +53,7 @@ No momento, o serviço não se encontra completo, mas está sendo divertido mont
 
 ## Equipe 
 
-**Integrantes: **
+**Integrantes:**
 
 - Daniel Dias Ribeiro
 - Elaine Gomes e Silva
@@ -61,8 +61,9 @@ No momento, o serviço não se encontra completo, mas está sendo divertido mont
 - Michael Klug Berger Costa
 - Robson Allan Viana
 
-**Orientados por: **
+**Orientados por:**
 
 Carlos Eduardo Lopes
+
 Roger Lucio de Lima Bassan
 
