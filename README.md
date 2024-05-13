@@ -63,6 +63,6 @@ No momento, o serviço não se encontra completo, mas está sendo divertido mont
 
 **Orientados por:**
 
--Carlos Eduardo Lopes
--Roger Lucio de Lima Bassan
+- Carlos Eduardo Lopes
+- Roger Lucio de Lima Bassan
 
