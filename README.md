@@ -51,3 +51,18 @@ O fluxo de trabalho típico do sistema de automação de geração da tabela Exc
 
 No momento, o serviço não se encontra completo, mas está sendo divertido montar
 
+## Equipe 
+
+**Integrantes: **
+
+- Daniel Dias Ribeiro
+- Elaine Gomes e Silva
+- João Pedro Piurkoski
+- Michael Klug Berger Costa
+- Robson Allan Viana
+
+**Orientados por: **
+
+Carlos Eduardo Lopes
+Roger Lucio de Lima Bassan
+
