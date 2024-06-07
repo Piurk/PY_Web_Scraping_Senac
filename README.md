@@ -34,6 +34,7 @@ O projeto faz uso das seguintes tecnologias:
   - *BeautifulSoup*: Utilizada para a parte de Webscraping do site.
   - *requests*: Utilizada para fazer requisições ao site.
   - *re*: Para ajuste de caracteres no texto.
+  - *unidecode*: Para ajustar os textos para filtragem de dados.
 
 ## Fluxo de Trabalho
 
