@@ -1,140 +1,111 @@
-import requests # Para requisições do site
-import pandas as pd # Para montar as tabelas (não utilizado nesse arquivos)
-from bs4 import BeautifulSoup # Para  poder manipular os dados dos sites 
-import re # Para poder cortar coisas desnecessárias do texto
-from unidecode import unidecode # Para poder ajustar o texto em algumas requisições
+import requests
+import pandas as pd
+from bs4 import BeautifulSoup
+import re
+from unidecode import unidecode
 
-# TESTE COM BS INICIO
-url= "https://www.pr.senac.br/psg_novo/partials/vagas/index.asp" # Url onde tem todas as Listas de cursos do Senac
+# URL onde estão todas as listas de cursos do Senac
+url = "https://www.pr.senac.br/psg_novo/partials/vagas/index.asp"
 
+# Fazendo a requisição para obter o HTML da página
 requrl = requests.get(url)
 soup = BeautifulSoup(requrl.text, "html.parser")
 
-a = soup.find_all("a") # Os dados de Nomes de Filiais e Cursos estão alocados em <a>'s
+# Encontrando todos os elementos <a> na página
+a = soup.find_all("a")
 
-inicio = 0 # Criação de Var Inicio
-
-# Isso é um filtro para localizar onde está Curitiba Centro (o inicio da Lista que vamos analisar)
-
+# Identificando o início da lista de cursos
+inicio = 0
 for i, a_tag in enumerate(a):
     if "CURITIBA - CENTRO" in a_tag.get_text(strip=True):
-        inicio = i + 1 # Adicionando mais um por causa se esse é o Curitiba centro, o próximo é o primeiro curso da lista
+        inicio = i + 1
         break
 
-#Criando uma nova lista, para passar os valores a partir do nosso começo
-novalista = [] 
+# Criando uma lista com os valores a partir do início identificado
+novalista = [a[i] for i in range(inicio, len(a))]
 
-for i in range(inicio, len(a)):
-    novalista.append(a[i])
-
-
-fimfake = 0 # Criação de Fim Fake (ela vai medir apenas o final para a nova lista)
-
-#Filtro fazendo o Unidecode limpar totalmente qualquer acento grafico (estava dando erro)
+# Identificando o fim da lista de cursos
+fimfake = 0
 for f, novalista_tag in enumerate(novalista):
     if "CURITIBA - JARDIM BOTANICO" in unidecode(novalista_tag.get_text(strip=True)).upper():
-        fimfake = f - 1 # Mesma lógica, se a var é onde tem o texto, uma a menos é a ultima entrada do nosso intervalo de dados
+        fimfake = f - 1
         break
 
-fim = inicio + fimfake # Pequena formula básica, para poder somar o Inicio de a até o fim de novalista, totalizando em fim de procura var
+# Calculando o índice de fim baseado no início e no fimfake
+fim = inicio + fimfake
 
-# Agora nós temos duas vars Inicio e Fim, que são o tempo de intervalo que devemos percorrer
-
-# Essa primeira fórmula armazena o valor de TC de cada curso, cortando fora o que não é necessário
-
+# Extraindo os valores de TC de cada curso
 tc = []
-n = inicio
 
-while n <= fim:
-    teste = a[n]
-    href_string = str(teste['href'])
+for n in range(inicio, fim + 1):
+    href_string = a[n]['href']
     numero = re.search(r'tc=(\d+)', href_string).group(1)
-    x = n
     tc.append(numero)
-    n += 1
 
-# Agora possuindo tc, nós podemos ir em cada site, buscar o valor de tstcod que podemos encontar ao inspecionar
-# o elemento dá pagina e ver as turmas de cada curso
-
+# Extraindo os valores de tstcod e carga horaria para cada curso
 tstcod = []
-
+cargahoraria = []
 for m in tc:
+    urltest = f"https://www.pr.senac.br/cursos/?uep=1&tc={m}"
+    tstcoda_url = BeautifulSoup(requests.get(urltest).text, "html.parser")
+    tstcoda = tstcoda_url.find_all("a", attrs={'href': lambda x: x and 'tstcod' in x})
+    if tstcoda:
+        href_string2 = tstcoda[0]['href']
+        tstcnumero = re.search(r'tstcod=(\d+)', href_string2).group(1)
+        tstcod.append(tstcnumero)
     
-    urltest = ("https://www.pr.senac.br/cursos/?uep=1&tc="+m) # URL nova, m vai pegar o valor de cada digito de tc
 
-    tstcodurl= BeautifulSoup(requests.get(urltest).text, "html.parser")
-    tstcoda = tstcodurl.find_all("a",attrs={'href': lambda x: x and 'tstcod' in x}) # Esse é um pouco confuso, mas eu 
-    # descobri que dentre os <a>s dessa pagina, eles não eram padronizados, as vezes um poderia estar em tstcoda[6], as vezes em 
-    # tstcoda[2], por isso precisa de uma formula para pegar o <a> com tstcod
-
-    tstcody = tstcoda[0] # como estou usando find_all seria um array então eu só passei como var
+# Extraindo dados das tabelas para cada URL construída
+all_data = []
+for r, tst in enumerate(tstcod):
+    completo = f"https://www.pr.senac.br/psg/?p_psg=10&op=1&uc=1&tstcod={tst}&tc={tc[r]}"
+    req = requests.get(completo)
+    site = BeautifulSoup(req.text, "html.parser")
+    tabelastestes = site.find_all("table", class_="table table-bordered table-striped table-responsive")
     
-    href_string2 = tstcody['href']
+    if not tabelastestes:
+        print(f"Tabela não encontrada para o curso {tc[r]}")
+        continue
     
-    tstcnumero = re.search(r'tstcod=(\d+)', href_string2).group(1) # corte para adicionar apenas os numeros
     
-    tstcod.append(tstcnumero) # números adicionados
-# TESTE COM BS FIM
 
-tamanho = len(tc)
-
-for i in tamanho:
-    completo= (f"https://www.pr.senac.br/psg/?p_psg=10&op=1&uc=1&tstcod="+tstcod[i]+"&tc="+tc[i])
-
-print(completo)
+    # Extraindo dados adicionais como nome do curso e processo seletivo
+    dados_adicionais = site.find_all("h3")
+    dados_adicionais_str = ' '.join(str(elem) for elem in dados_adicionais)
+    
 
 
-# Requisição do BS
-req = requests.get(completo)
-site = BeautifulSoup(req.text, "html.parser")
-tabelastestes = site.find_all("table")
+    nome_curso_match = re.search(r'<b>(.*?)</b>', dados_adicionais_str)
+    nome_curso = nome_curso_match.group(1) if nome_curso_match else "N/A"
+    
+    processo_seletivo_match = re.search(r'Processo Seletivo: <b>(\d+)</b>', dados_adicionais_str)
+    processo_seletivo = processo_seletivo_match.group(1) if processo_seletivo_match else "N/A"
+    
+    # Função para extrair dados da tabela HTML
+    def extrair_tabela(html_table):
+        rows = html_table.find_all('tr')
+        data = []
+        for row in rows:
+            cols = row.find_all(["th", "td"])
+            cols = [col.text.strip() for col in cols]
+            data.append(cols)
+        return data
+    
+    # Extraindo dados da tabela
+    data = extrair_tabela(tabelastestes[0])
+    
+    # Adicionando o nome do curso e o processo seletivo como novas colunas
+    for row in data[1:]:  # Excluindo o cabeçalho
+        row.insert(0, nome_curso)
+        row.insert(1, processo_seletivo)
+    
+    all_data.extend(data[1:])  # Adicionando dados (sem o cabeçalho) à lista total
 
-# Adicionando também dados de processo seletivo
-dados_adicionais = site.find_all("h3")
-dados_adicionais_str = ' '.join(str(elem) for elem in dados_adicionais)
+# Cabeçalhos para o DataFrame
+headers = ['Nome do Curso', 'Processo Seletivo'] + data[0]
 
-string_html = dados_adicionais_str
-
-nome_curso_regex = r'<b>(.*?)</b>'
-nome_curso_match = re.search(nome_curso_regex, string_html)
-nome_curso = nome_curso_match.group(1) if nome_curso_match else None
-
-processo_seletivo_regex = r'Processo Seletivo: <b>(\d+)</b>'
-processo_seletivo_match = re.search(processo_seletivo_regex, string_html)
-processo_seletivo = processo_seletivo_match.group(1) if processo_seletivo_match else None
-
-# Extração de Dados em Planilha
-def extrair_tabela(html_table):
-    rows = html_table.find_all('tr')
-    data = []
-    for row in rows:
-        cols = row.find_all(["th", "td"])
-        cols = [col.text.strip() for col in cols]
-        data.append(cols)
-    return(data)
-
-# Passando os dados do BS pra tabela
-data = extrair_tabela(tabelastestes[1])
-
-
-# Adicionar o nome do curso e o processo seletivo como uma nova coluna
-nome_curso_column = ['Nome do Curso'] + [nome_curso] * (len(data))
-processo_seletivo_column = ['Processo Seletivo'] + [processo_seletivo] * (len(data))
-
-# Adicionando as novas colunas à lista de dados
-for i in range(len(data)):
-    data[i].insert(0, nome_curso_column[i])
-    data[i].insert(1, processo_seletivo_column[i])
-
-# Dataframe Pandas
-df = pd.DataFrame(data[1:], columns=data[0])
-
-
-# Para esse projeto vou fazer xlsx pois o excel é meu queridinho
-
+# Criando o DataFrame e salvando em Excel
+df = pd.DataFrame(all_data, columns=headers)
 df.to_excel("dados.xlsx", index=False)
 
-# Tá funcionando a base, proximo passo é fazer isso pra TODAS as escolas de curitiba centro
-
-
-
+print("Dados extraídos e salvos com sucesso!")

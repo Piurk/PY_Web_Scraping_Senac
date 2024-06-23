@@ -50,7 +50,7 @@ O fluxo de trabalho típico do sistema de automação de geração da tabela Exc
 
 ## Conclusão
 
-No momento, o serviço não se encontra completo, mas está sendo divertido montar
+Agora o projeto consegue automaticamente buscar por onde estão os intervalos de cursos de curitiba centro e organizar todos os dados em planilha
 
 ## Equipe 
 

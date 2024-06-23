@@ -74,4 +74,4 @@ for m in tc:
     
     tstcod.append(tstcnumero) # números adicionados
 
-    
+print(tc, tstcod)
